@@ -1,0 +1,21 @@
+<?xml version="1.0" ?>
+<RDF xmlns="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+  xmlns:em="http://www.mozilla.org/2004/em-rdf#">
+  <Description about="urn:mozilla:install-manifest">
+    <em:id>quick-options@loucypher</em:id>
+    <em:type>2</em:type>
+    <em:bootstrap>true</em:bootstrap>
+    <em:name>Quick Options</em:name>
+    <em:version>0.1a1</em:version>
+    <em:description>Quickly accessing Options' pane from Firefox Options menu.</em:description>
+    <em:creator>LouCypher</em:creator>
+    <em:homepageURL>https://github.com/LouCypher/quick-options</em:homepageURL>
+    <em:targetApplication>
+      <Description><!--Firefox-->
+        <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
+        <em:minVersion>17.0</em:minVersion>
+        <em:maxVersion>26.*</em:maxVersion>
+      </Description>
+    </em:targetApplication>
+  </Description>
+</RDF>
