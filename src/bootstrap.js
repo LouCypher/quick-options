@@ -7,10 +7,10 @@
  *  - LouCypher (original code)
  */
 
-const {classes: Cc, interfaces: Ci, utils: Cu, Constructor: CC } = Components;
-Cu.import("resource://gre/modules/Services.jsm");
+const {classes: Cc, interfaces: Ci, utils: Cu, Constructor: CC} = Components;
 
-const XMLHttpRequest = CC("@mozilla.org/xmlextras/xmlhttprequest;1", "nsIXMLHttpRequest");
+Cu.import("resource://gre/modules/Services.jsm");
+const {prefs: prefs, io: io, wm: wm} = Services;
 
 function log(aString) {
   Services.console.logStringMessage("Bootstrap:\n" + aString);
@@ -20,9 +20,100 @@ function setResourceName(aData) aData.id.toLowerCase().match(/[^\@]+/).toString(
                                                       .replace(/[^\w]/g, "");
 
 function resProtocolHandler(aResourceName, aURI) {
-  Services.io.getProtocolHandler("resource")
-             .QueryInterface(Ci.nsIResProtocolHandler)
-             .setSubstitution(aResourceName, aURI, null)
+  io.getProtocolHandler("resource")
+    .QueryInterface(Ci.nsIResProtocolHandler)
+    .setSubstitution(aResourceName, aURI, null);
+}
+
+function openPreferencesInTab(aWindow, aPaneId) {
+  function aboutPreferences(aBrowser, aPaneId) {
+    let win = aBrowser.contentWindow;
+    let gotoPref = win.wrappedJSObject.gotoPref;
+    gotoPref(aPaneId)
+    win.focus();
+  }
+
+  // This will switch to the tab in aWindow having aURI, if present.
+  function switchIfURIInWindow(aWindow, aURI) {
+    let browsers = aWindow.gBrowser.browsers;
+    for (let i = 0; i < browsers.length; i++) {
+      let browser = browsers[i];
+      if (browser.currentURI.equals(aURI)) {
+        // Focus the matching window & tab
+        aWindow.focus();
+        aWindow.gBrowser.tabContainer.selectedIndex = i;
+        return true;
+      }
+    }
+    return false;
+  }
+
+  let URI = "about:preferences";
+
+  // This can be passed either nsIURI or a string.
+  if (!(URI instanceof Ci.nsIURI))
+    URI = io.newURI(URI, null, null);
+
+  let isBrowserWindow = !!aWindow.gBrowser;
+
+  // Prioritise this window.
+  if (isBrowserWindow && switchIfURIInWindow(aWindow, URI)) {
+    aboutPreferences(aWindow.getBrowser().selectedBrowser, aPaneId);
+    return;
+  }
+
+  let winEnum = wm.getEnumerator("navigator:browser");
+  while (winEnum.hasMoreElements()) {
+    let browserWin = winEnum.getNext();
+    // Skip closed (but not yet destroyed) windows,
+    // and the current window (which was checked earlier).
+    if (browserWin.closed || browserWin == aWindow) {
+      aWindow.openLinkIn(URI.spec, "tab", {fromChrome:true});
+      browserWin.addEventListener("pageshow", function browserWinPageShow(event) {
+        if (event.target.location.href != URI.spec)
+          return;
+        browserWin.removeEventListener("pageshow", browserWinPageShow, true);
+        aboutPreferences(browserWin.getBrowser().selectedBrowser, aPaneId);
+      }, true)
+    }
+    if (switchIfURIInWindow(browserWin, URI))
+      return;
+  }
+}
+
+function openPreferences(aWindow, aPaneId, aExtraArgs) {
+  let prefBranch = prefs.getBranch("browser.preferences.");
+
+  if (prefBranch.getBoolPref("inContent") && aPaneId != "paneDownloads")
+    openPreferencesInTab(aWindow, aPaneId);
+
+  else {
+    if (aPaneId == "paneGeneral")
+      aPaneId = "paneMain";
+
+    let instantApply = prefBranch.getBoolPref("instantApply", false);
+    let features = "chrome, titlebar, toolbar, centerscreen" +
+                   (instantApply ? ", dialog=no" : ", modal");
+
+    let win = wm.getMostRecentWindow("Browser:Preferences");
+    if (win) {
+      win.focus();
+      if (aPaneId) {
+        let pane = win.document.getElementById(aPaneId);
+        win.document.documentElement.showPane(pane);
+      }
+
+      if (aExtraArgs && aExtraArgs["advancedTab"]) {
+        let advancedPaneTabs = win.document.getElementById("advancedPrefs");
+        advancedPaneTabs.selectedTab = win.document.getElementById(aExtraArgs["advancedTab"]);
+      }
+
+     return;
+    }
+
+    aWindow.openDialog("chrome://browser/content/preferences/preferences.xul",
+                       "Preferences", features, aPaneId, aExtraArgs);
+  }
 }
 
 function addMenuitem(aWindow, aLabel, aPaneId) {
@@ -33,9 +124,7 @@ function addMenuitem(aWindow, aLabel, aPaneId) {
   //menuitem.setAttribute("oncommand", "openPreferences(this.value);"); // AMO doesn't like this
   menuitem.addEventListener("command", function(aEvent) { // AMO prefer this
     let paneId = aEvent.target.value;
-    if (paneId == "paneGeneral")
-      paneId = "paneMain";
-    aWindow.openPreferences(paneId);
+    openPreferences(aWindow, paneId);
   })
   return menuitem;
 }
@@ -51,10 +140,11 @@ function getPaneName(aPaneId, aString) {
 }
 
 function quickOptions(aWindow) {
-  let { document } = aWindow;
+  const XMLHttpRequest = CC("@mozilla.org/xmlextras/xmlhttprequest;1", "nsIXMLHttpRequest");
+  let {document} = aWindow;
 
-  var url = "chrome://browser/locale/preferences/preferences.dtd";
-  var xhr = new XMLHttpRequest();
+  let url = "chrome://browser/locale/preferences/preferences.dtd";
+  let xhr = new XMLHttpRequest();
   xhr.open("GET", url, false);
   xhr.send(null);
   let prefDTD = xhr.responseText;
@@ -85,7 +175,7 @@ function quickOptions(aWindow) {
   unload(function() {
     appmenu_pref.hidden = false;
     let items = document.querySelectorAll(".quick-options");
-    for (var i = 0; i < items.length; i++) {
+    for (let i = 0; i < items.length; i++) {
       items[i].parentNode.removeChild(items[i]);
     }
   }, aWindow)
