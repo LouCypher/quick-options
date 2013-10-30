@@ -1,0 +1,28 @@
+<?xml version="1.0" ?>
+<!--
+    This Source Code Form is subject to the terms of the Mozilla Public
+    License, v. 2.0. If a copy of the MPL was not distributed with this
+    file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+    Contributor(s):
+    - LouCypher (original code)
+-->
+
+<!DOCTYPE vbox SYSTEM "chrome://quick-options/locale/options.dtd">
+
+<vbox xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <setting pref="browser.preferences.instantApply"
+           type="bool"
+           title="&browser.preferences.instantApply.title;"
+           desc="&browser.preferences.instantApply.desc;"/>
+
+  <setting pref="browser.preferences.animateFadeIn"
+           type="bool"
+           title="&browser.preferences.animateFadeIn.title;"
+           desc="&browser.preferences.animateFadeIn.desc;"/>
+
+  <setting pref="browser.preferences.inContent"
+           type="bool"
+           title="&browser.preferences.inContent.title;"
+           desc="&browser.preferences.inContent.desc;"/>
+</vbox>
