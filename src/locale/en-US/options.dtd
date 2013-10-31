@@ -3,4 +3,4 @@
 <!ENTITY browser.preferences.animateFadeIn.title    "Animate fade in">
 <!ENTITY browser.preferences.animateFadeIn.desc     "When switching prefs panels, change the height of the window and fade the new panel in over about a second.">
 <!ENTITY browser.preferences.inContent.title        "In content">
-<!ENTITY browser.preferences.inContent.desc         "Open options in tab. The above options doesn't work with this.">
+<!ENTITY browser.preferences.inContent.desc         "Open options in tab. All options above doesn't work with this.">
