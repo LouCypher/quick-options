@@ -139,48 +139,47 @@ function getPaneName(aPaneId, aString) {
   }
 }
 
-function quickOptions(aWindow) {
+function getStringsFromDTD(aChromeURL) {
   const XMLHttpRequest = CC("@mozilla.org/xmlextras/xmlhttprequest;1", "nsIXMLHttpRequest");
-  let {document} = aWindow;
-
-  let url = "chrome://browser/locale/preferences/preferences.dtd";
   let xhr = new XMLHttpRequest();
-  xhr.open("GET", url, false);
+  xhr.open("GET", aChromeURL, false);
   xhr.send(null);
-  let prefDTD = xhr.responseText;
+  return xhr.responseText;
+}
 
-  let appmenu_pref = document.getElementById("appmenu_preferences");
-  if (appmenu_pref) {
-    let appmenu_prefPopup = appmenu_pref.parentNode;
+function quickOptions(aWindow) {
+  const {document} = aWindow;
+
+  let prefDTD = getStringsFromDTD("chrome://browser/locale/preferences/preferences.dtd");
+
+  let prefMenu = document.getElementById("appmenu_preferences");
+  if (prefMenu) {
+    let popup = prefMenu.parentNode;
     ["paneGeneral", "paneTabs", "paneContent", "paneApplications",
      "panePrivacy", "paneSecurity", "paneSync", "paneAdvanced"].forEach(function(paneId) {
-      appmenu_prefPopup.insertBefore(addMenuitem(aWindow, getPaneName(paneId, prefDTD), paneId),
-                                     appmenu_pref);
+      popup.insertBefore(addMenuitem(aWindow, getPaneName(paneId, prefDTD), paneId), prefMenu);
     })
 
     if (typeof aWindow.gSyncUI == "undefined")
-      appmenu_prefPopup.querySelector("menuitem[value='paneSync']").hidden = true;
+      popup.querySelector("menuitem[value='paneSync']").hidden = true;
 
     if ("dmtDownloadManager" in aWindow) {  // If Download Manager Tweak is active
       let label = document.getElementById("menu_openDownloads").label;
-      appmenu_prefPopup.insertBefore(addMenuitem(aWindow, label, "paneDownloads"),
-                                     appmenu_pref);
+      popup.insertBefore(addMenuitem(aWindow, label, "paneDownloads"), prefMenu);
     }
 
-    if (appmenu_pref.nextSibling.localName != "menuseparator") {
-      let separator = appmenu_prefPopup.insertBefore(document.createElement("menuseparator"),
-                                                     appmenu_pref);
+    if (prefMenu.nextSibling.localName != "menuseparator") {
+      let separator = popup.insertBefore(document.createElement("menuseparator"), prefMenu);
       separator.className = "quick-options";
     }
-    appmenu_pref.hidden = true;
+    prefMenu.hidden = true;
   }
 
   unload(function() {
-    appmenu_pref.hidden = false;
+    prefMenu.hidden = false;
     let items = document.querySelectorAll(".quick-options");
-    for (let i = 0; i < items.length; i++) {
+    for (let i = 0; i < items.length; i++)
       items[i].parentNode.removeChild(items[i]);
-    }
   }, aWindow)
 }
 
