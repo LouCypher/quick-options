@@ -158,6 +158,9 @@ function quickOptions(aWindow) {
                                      appmenu_pref);
     })
 
+    if (typeof aWindow.gSyncUI == "undefined")
+      appmenu_prefPopup.querySelector("menuitem[value='paneSync']").hidden = true;
+
     if ("dmtDownloadManager" in aWindow) {  // If Download Manager Tweak is active
       let label = document.getElementById("menu_openDownloads").label;
       appmenu_prefPopup.insertBefore(addMenuitem(aWindow, label, "paneDownloads"),
