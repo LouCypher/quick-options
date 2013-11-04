@@ -6,7 +6,7 @@
     <em:type>2</em:type>
     <em:bootstrap>true</em:bootstrap>
     <em:name>Quick Options</em:name>
-    <em:version>0.1a5</em:version>
+    <em:version>0.1a6</em:version>
     <em:description>Quickly accessing Options' pane from Firefox Options menu.</em:description>
     <em:creator>LouCypher</em:creator>
     <em:homepageURL>https://github.com/LouCypher/quick-options</em:homepageURL>

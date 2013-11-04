@@ -139,7 +139,7 @@ function getPaneName(aPaneId, aString) {
                   .match(/\".*/).toString()
                   .replace(/\"/g, "");
   } catch(ex) {
-    return undefined;
+    return aPaneId;
   }
 }
 
