@@ -50,6 +50,10 @@ function openPreferencesInTab(aWindow, aPaneId) {
 
   let URI = "about:preferences";
 
+  // Bug 767313
+  if (aPaneId == "paneTabs" && Services.appinfo.version > "25")
+    aPaneId = "paneGeneral";
+
   // This can be passed either nsIURI or a string.
   if (!(URI instanceof Ci.nsIURI))
     URI = io.newURI(URI, null, null);
