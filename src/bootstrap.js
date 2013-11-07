@@ -151,17 +151,20 @@ function getStringsFromDTD(aChromeURL) {
   return xhr.responseText;
 }
 
-function quickOptions(aWindow) {
+function quickOptionsInit(aWindow) {
   const {document} = aWindow;
 
   let prefDTD = getStringsFromDTD("chrome://browser/locale/preferences/preferences.dtd");
 
-  let prefMenu = document.getElementById("appmenu_preferences");
-  if (prefMenu) {
-    let popup = prefMenu.parentNode;
+  /**
+   * App menu
+   */
+  let appPrefMenu = document.getElementById("appmenu_preferences");
+  if (appPrefMenu) {
+    let popup = appPrefMenu.parentNode;
     ["paneGeneral", "paneTabs", "paneContent", "paneApplications",
      "panePrivacy", "paneSecurity", "paneSync", "paneAdvanced"].forEach(function(paneId) {
-      popup.insertBefore(addMenuitem(aWindow, getPaneName(paneId, prefDTD), paneId), prefMenu);
+      popup.insertBefore(addMenuitem(aWindow, getPaneName(paneId, prefDTD), paneId), appPrefMenu);
     })
 
     if (typeof aWindow.gSyncUI == "undefined")
@@ -169,18 +172,48 @@ function quickOptions(aWindow) {
 
     if ("dmtDownloadManager" in aWindow) {  // If Download Manager Tweak is active
       let label = document.getElementById("menu_openDownloads").label;
-      popup.insertBefore(addMenuitem(aWindow, label, "paneDownloads"), prefMenu);
+      popup.insertBefore(addMenuitem(aWindow, label, "paneDownloads"), appPrefMenu);
     }
 
-    if (prefMenu.nextSibling.localName != "menuseparator") {
-      let separator = popup.insertBefore(document.createElement("menuseparator"), prefMenu);
+    if (appPrefMenu.nextSibling.localName != "menuseparator") {
+      let separator = popup.insertBefore(document.createElement("menuseparator"), appPrefMenu);
       separator.className = "quick-options";
+    }
+    appPrefMenu.hidden = true;
+  }
+
+  /**
+   * Tools menu
+   */
+  let prefMenu = document.getElementById("menu_preferences");
+  if (prefMenu) {
+    let menu = prefMenu.parentNode.insertBefore(document.createElement("splitmenu"), prefMenu);
+    menu.className = "quick-options";
+    let attributes = prefMenu.attributes;
+    for (let i = 0; i < attributes.length; i++) {
+      if (attributes[i].name != "id")
+        menu.setAttribute(attributes[i].name, attributes[i].value);
+    }
+
+    let popup = menu.appendChild(document.createElement("menupopup"));    
+    ["paneGeneral", "paneTabs", "paneContent", "paneApplications",
+     "panePrivacy", "paneSecurity", "paneSync", "paneAdvanced"].forEach(function(paneId) {
+      popup.appendChild(addMenuitem(aWindow, getPaneName(paneId, prefDTD), paneId));
+    })
+
+    if (typeof aWindow.gSyncUI == "undefined")
+      popup.querySelector("menuitem[value='paneSync']").hidden = true;
+
+    if ("dmtDownloadManager" in aWindow) {  // If Download Manager Tweak is active
+      let label = document.getElementById("menu_openDownloads").label;
+      popup.appendChild(addMenuitem(aWindow, label, "paneDownloads"));
     }
     prefMenu.hidden = true;
   }
 
   unload(function() {
     prefMenu.hidden = false;
+    appPrefMenu.hidden = false;
     let items = document.querySelectorAll(".quick-options");
     for (let i = 0; i < items.length; i++)
       items[i].parentNode.removeChild(items[i]);
@@ -198,7 +231,7 @@ function startup(data, reason) {
   resProtocolHandler(resourceName, data.resourceURI);
 
   Cu.import("resource://" + resourceName + "/watchwindows.jsm");
-  watchWindows(quickOptions);
+  watchWindows(quickOptionsInit);
 }
 
 /**

@@ -6,7 +6,7 @@
     <em:type>2</em:type>
     <em:bootstrap>true</em:bootstrap>
     <em:name>Quick Options</em:name>
-    <em:version>0.1a6</em:version>
+    <em:version>0.1</em:version>
     <em:description>Quickly accessing Options' pane from Firefox Options menu.</em:description>
     <em:creator>LouCypher</em:creator>
     <em:homepageURL>https://github.com/LouCypher/quick-options</em:homepageURL>
@@ -14,7 +14,7 @@
       <Description><!--Firefox-->
         <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
         <em:minVersion>17.0</em:minVersion>
-        <em:maxVersion>28.0</em:maxVersion>
+        <em:maxVersion>27.*</em:maxVersion>
       </Description>
     </em:targetApplication>
   </Description>
