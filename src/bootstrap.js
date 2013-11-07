@@ -187,13 +187,14 @@ function quickOptionsInit(aWindow) {
    */
   let prefMenu = document.getElementById("menu_preferences");
   if (prefMenu) {
-    let menu = prefMenu.parentNode.insertBefore(document.createElement("splitmenu"), prefMenu);
+    let {parentNode} = prefMenu;
+    let menu = document.createElement("menu");
+    if (parentNode.lastChild == prefMenu)
+      parentNode.appendChild(menu);
+    else
+      parentNode.insertBefore(menu, prefMenu.nextSibling);
     menu.className = "quick-options";
-    let attributes = prefMenu.attributes;
-    for (let i = 0; i < attributes.length; i++) {
-      if (attributes[i].name != "id")
-        menu.setAttribute(attributes[i].name, attributes[i].value);
-    }
+    menu.setAttribute("label", prefMenu.label);
 
     let popup = menu.appendChild(document.createElement("menupopup"));    
     ["paneGeneral", "paneTabs", "paneContent", "paneApplications",
@@ -208,11 +209,11 @@ function quickOptionsInit(aWindow) {
       let label = document.getElementById("menu_openDownloads").label;
       popup.appendChild(addMenuitem(aWindow, label, "paneDownloads"));
     }
-    prefMenu.hidden = true;
+    //prefMenu.hidden = true;
   }
 
   unload(function() {
-    prefMenu.hidden = false;
+    //prefMenu.hidden = false;
     appPrefMenu.hidden = false;
     let items = document.querySelectorAll(".quick-options");
     for (let i = 0; i < items.length; i++)
