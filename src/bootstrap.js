@@ -30,8 +30,10 @@ function quickOptionsInit(aWindow) {
   function openPreferencesInTab(aWindow, aPaneId) {
     function aboutPreferences(aBrowser, aPaneId) {
       let win = aBrowser.contentWindow;
-      let gotoPref = win.wrappedJSObject.gotoPref;
-      gotoPref(aPaneId)
+      if (typeof win.selectCategory == "function")
+        win.selectCategory(aPaneId); // Bug 754344
+      else
+        win.gotoPref(aPaneId);
       win.focus();
     }
 
@@ -53,7 +55,9 @@ function quickOptionsInit(aWindow) {
     let URI = "about:preferences";
 
     // Bug 767313
-    if (aPaneId == "paneTabs" && Services.appinfo.version > "25")
+    let versionChecker = Cc["@mozilla.org/xpcom/version-comparator;1"].
+                         getService(Ci.nsIVersionComparator);
+    if (aPaneId == "paneTabs" && versionChecker.compare(Services.appinfo.version, "26.0a1") > 0)
       aPaneId = "paneGeneral";
 
     // This can be passed either nsIURI or a string.
@@ -154,6 +158,8 @@ function quickOptionsInit(aWindow) {
   }
 
   let prefDTD = getStringsFromDTD("chrome://browser/locale/preferences/preferences.dtd");
+  let paneIDs = ["paneGeneral", "paneTabs", "paneContent", "paneApplications",
+                 "panePrivacy", "paneSecurity", "paneSync", "paneAdvanced"];
 
   /**
    * App menu
@@ -161,10 +167,9 @@ function quickOptionsInit(aWindow) {
   let appPrefMenu = document.getElementById("appmenu_preferences");
   if (appPrefMenu) {
     let popup = appPrefMenu.parentNode;
-    ["paneGeneral", "paneTabs", "paneContent", "paneApplications",
-     "panePrivacy", "paneSecurity", "paneSync", "paneAdvanced"].forEach(function(paneId) {
+    paneIDs.forEach(function(paneId) {
       popup.insertBefore(addMenuitem(aWindow, getPaneName(paneId, prefDTD), paneId), appPrefMenu);
-    })
+    });
 
     if (typeof aWindow.gSyncUI == "undefined")
       popup.querySelector("menuitem[value='paneSync']").hidden = true;
@@ -195,11 +200,10 @@ function quickOptionsInit(aWindow) {
     menu.className = "quick-options";
     menu.setAttribute("label", prefMenu.label);
 
-    let popup = menu.appendChild(document.createElement("menupopup"));    
-    ["paneGeneral", "paneTabs", "paneContent", "paneApplications",
-     "panePrivacy", "paneSecurity", "paneSync", "paneAdvanced"].forEach(function(paneId) {
+    let popup = menu.appendChild(document.createElement("menupopup"));
+    paneIDs.forEach(function(paneId) {
       popup.appendChild(addMenuitem(aWindow, getPaneName(paneId, prefDTD), paneId));
-    })
+    });
 
     if (typeof aWindow.gSyncUI == "undefined")
       popup.querySelector("menuitem[value='paneSync']").hidden = true;
